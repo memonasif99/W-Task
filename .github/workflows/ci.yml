@@ -1,1 +1,49 @@
+name: Build and Push Docker Image
 
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout thee repository
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      # Step 2: Set up AWS credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      # Step 3: Log in to Amazon ECR
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      # Step 4: Build and tag the Docker image
+      - name: Build Docker Image
+        run: |
+          docker build --build-arg PIP_NO_CACHE_DIR=1 -t test-app .
+
+      # Step 5: Run a container to check dependencies installation (Debug Mode)
+      - name: Debug Dependencies Installation
+        run: |
+          docker run --rm test-app pip install -r requirements.txt --verbose
+
+      # Step 6: Push the image to ECR
+      - name: Push Docker Image to ECR
+        run: |
+          IMAGE_TAG="latest"
+          REPO_URI="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/test-app"
+          docker tag test-app:latest $REPO_URI:$IMAGE_TAG
+          docker push $REPO_URI:$IMAGE_TAG
