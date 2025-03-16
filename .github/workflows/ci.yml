@@ -44,7 +44,7 @@ jobs:
         id: trivy-scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest"
+          image-ref: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/test-app:latest"
           format: "table"
           exit-code: "1"
         continue-on-error: true
