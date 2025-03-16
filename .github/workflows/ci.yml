@@ -40,7 +40,15 @@ jobs:
         run: |
           docker run --rm test-app pip install -r requirements.txt --verbose
 
-      
+      - name: Scan Docker image with Trivy
+        id: trivy-scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest"
+          format: "table"
+          exit-code: "1"
+        continue-on-error: true
+        
       - name: Push Docker Image to ECR
         run: |
           IMAGE_TAG="latest"
